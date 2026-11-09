@@ -3,84 +3,247 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nieve en las estaciones</title>
+<title>Nieve en España</title>
+<meta name="description" content="Nieve caída, temperatura y previsión en las estaciones de esquí de España.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#edf2f5;--panel:#fff;--ink:#13212c;--muted:#5b6b78;--line:#d3dee5;--snow:#1d6fb8;--fc:#9cc3e6;--warm:#b4532a;color-scheme:light dark}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1a22;--panel:#16232d;--ink:#e6eef3;--muted:#92a4b1;--line:#273945;--snow:#5aa8e6;--fc:#2f5878;--warm:#e0875a}}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:960px;margin:0 auto;padding:28px 16px 48px}
-h1{font-size:1.7rem;margin:0 0 4px;font-weight:650;letter-spacing:-.01em}
-.sub{color:var(--muted);margin:0 0 20px;max-width:62ch}
-.wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
-th,td{padding:10px 14px;text-align:left;border-top:1px solid var(--line);vertical-align:middle}
-thead th{border-top:0;font-size:.85rem;font-weight:500;color:var(--muted)}
-tbody th{font-weight:600}
-th small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
-td.n,thead th.n{text-align:right;white-space:nowrap}
-tr.reg th{background:var(--bg);font-size:.85rem;color:var(--muted);font-weight:600;padding:8px 14px}
+:root{--bg:#eef3f7;--card:#fff;--ink:#0f2233;--muted:#586d7d;--line:#d5e0e8;--accent:#0a6fb7;--snow:#1b8fe0;--fc:#a5d3f6;--cold:#2b6cb0;--warm:#c2511f;--disp:"Barlow Condensed","Arial Narrow",sans-serif;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1620;--card:#13222e;--ink:#e7f0f6;--muted:#8fa4b3;--line:#233746;--accent:#5db4f0;--snow:#58b4f5;--fc:#2d5f85;--cold:#6fb0f0;--warm:#f0905f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 56px}
+h1,h2,h3{font-family:var(--disp)}
+h1{font-size:clamp(2.6rem,7vw,4rem);line-height:1;margin:0 0 6px;font-weight:700}
+.sub{margin:0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:24px 0 20px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font:700 2.6rem/1 var(--disp);color:var(--accent);margin-bottom:4px}
+.stat span{color:var(--muted);font-size:.92rem}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:12px 0}
+@media (min-width:760px){.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -16px;padding:12px 16px}}
+.bar label{display:flex;flex-direction:column;gap:3px;flex:1 1 140px;font-size:.8rem;color:var(--muted)}
+input,select,.btn{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px}
+#q{flex:2 1 200px}
+select{width:100%;padding-right:30px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%238a9ba8' stroke-width='1.6'/></svg>");background-repeat:no-repeat;background-position:right 11px center}
+.btn{cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+input:focus-visible,select:focus-visible,.btn:focus-visible,.card:focus-visible,.go:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#cuenta{margin:14px 0 0;color:var(--muted);font-size:.9rem}
+.reg{font-size:1.7rem;font-weight:600;margin:28px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:12px}
+.reg+.grid{margin-top:0}
+.card{all:unset;box-sizing:border-box;display:block;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card:hover{border-color:var(--accent)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card h3{margin:0;font-size:1.5rem;font-weight:600;line-height:1.1}
+.rg{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+.temp{font:600 2.1rem/1 var(--disp)}
+.cold{color:var(--cold)}
 .warm{color:var(--warm)}
-a{color:inherit;text-underline-offset:3px}
-a:hover{color:var(--snow)}
-a:focus-visible{outline:2px solid var(--snow);outline-offset:2px}
-.bars{display:flex;align-items:flex-end;gap:2px;height:40px}
-.bars i{width:6px;background:var(--snow);border-radius:1px}
+.nums{display:flex;gap:20px;margin:12px 0 10px}
+.nums b{display:block;font:600 2rem/1 var(--disp)}
+.nums span{font-size:.78rem;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:2px;height:44px;border-bottom:1px solid var(--line)}
+.bars i{flex:1;background:var(--snow);border-radius:1px 1px 0 0}
 .bars i.f{background:var(--fc)}
 .bars i.z{background:var(--line)}
-.bars i.t{margin-left:6px}
-footer{margin-top:16px;color:var(--muted);font-size:.85rem;max-width:70ch}
+.bars i.t{margin-left:5px}
+.alt{margin:6px 0 0;font-size:.8rem;color:var(--muted)}
+.nodata,.vacio{color:var(--muted);margin:14px 0 0}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto}
+dialog::backdrop{background:rgba(5,15,25,.55)}
+@media (prefers-reduced-motion:no-preference){dialog[open]{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
+.in{padding:20px 22px 22px}
+.dh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dh h2{margin:0;font-size:2.4rem;font-weight:700;line-height:1.05}
+.in .nums b{font-size:2.6rem}
+svg.ch{width:100%;height:auto;display:block;margin:6px 0}
+.ax{fill:var(--muted);font:11px Barlow,system-ui,sans-serif}
+.gl{stroke:var(--line)}
+.cut{stroke:var(--line);stroke-dasharray:2 4}
+.z0{stroke:var(--muted);stroke-dasharray:3 3}
+.lh,.ll{fill:none;stroke-width:2}
+.lh{stroke:var(--warm)}
+.ll{stroke:var(--cold)}
+.dh1{fill:var(--warm)}
+.dl1{fill:var(--cold)}
+.b{fill:var(--snow)}
+.b.f{fill:var(--fc)}
+.b.z{fill:var(--line)}
+.lg{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.85rem}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.note{color:var(--muted);font-size:.85rem;margin:14px 0 0;max-width:62ch}
+.go{display:inline-block;margin-top:14px;padding:10px 16px;border-radius:8px;background:var(--accent);color:var(--card);font-weight:600;text-decoration:none}
+footer{margin-top:36px;color:var(--muted);font-size:.85rem;max-width:72ch}
+a{text-underline-offset:3px}
 </style>
 </head>
 <body>
 <main>
-<h1>Nieve en las estaciones</h1>
+<h1>Nieve en España</h1>
 <p class="sub" id="estado">Cargando datos…</p>
-<div class="wrap">
-<table>
-<thead><tr><th>Estación</th><th class="n">Ahora</th><th class="n">Últimos 7 días</th><th class="n">Próx. 5 días</th><th>Nieve por día</th></tr></thead>
-<tbody id="filas"></tbody>
-</table>
+<section class="stats" id="stats"></section>
+<div class="bar">
+<label style="flex:2 1 200px">Buscar<input id="q" type="search" placeholder="Nombre de la estación" autocomplete="off"></label>
+<label>Región<select id="region"></select></label>
+<label>Cota máxima<select id="cota"><option value="0">Cualquiera</option><option value="2000">Más de 2.000 m</option><option value="2500">Más de 2.500 m</option><option value="3000">Más de 3.000 m</option></select></label>
+<label>Nieve<select id="nieve"><option value="">Toda</option><option value="p7">Con nieve en 7 días</option><option value="f5">Con nieve prevista</option><option value="any">Reciente o prevista</option></select></label>
+<label>Ordenar por<select id="orden"><option value="region">Región</option><option value="nombre">Nombre</option><option value="p7">Más nieve caída</option><option value="f5">Más nieve prevista</option><option value="frio">Más frío ahora</option><option value="cota">Cota máxima</option></select></label>
+<button class="btn" id="reset" type="button">Limpiar</button>
 </div>
+<p id="cuenta"></p>
+<div id="lista"></div>
 <footer>
-Las barras muestran la nieve diaria: 7 días pasados, y hoy más 4 días de previsión en azul claro. La nieve es la estimada por el modelo meteorológico, no la medida por cada estación. Los datos oficiales de las estaciones se añadirán después.
+Las barras muestran la nieve diaria: 7 días pasados y, en azul claro, hoy y los 4 días siguientes. La nieve y la temperatura son estimaciones del modelo meteorológico para la altitud media de cada estación, no mediciones de la propia estación. Los datos oficiales se añadirán más adelante.
 Datos meteorológicos: <a href="https://open-meteo.com/">Open-Meteo.com</a>.
 </footer>
 </main>
+<dialog id="det"><div class="in"></div></dialog>
 <script>
+const $ = s => document.querySelector(s);
+const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const fmt = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
 const sum = a => a.reduce((t, d) => t + (d.snow || 0), 0);
+const day = (d, o) => new Date(d + 'T12:00:00').toLocaleDateString('es-ES', o);
+const DEF = {q: '', region: '', cota: 0, nieve: '', orden: 'region'};
+const CMP = {
+  nombre: (a, b) => a.name.localeCompare(b.name, 'es'),
+  p7: (a, b) => (b.ok ? b.p7 : -1) - (a.ok ? a.p7 : -1),
+  f5: (a, b) => (b.ok ? b.f5 : -1) - (a.ok ? a.f5 : -1),
+  frio: (a, b) => (a.ok ? a.t : 99) - (b.ok ? b.t : 99),
+  cota: (a, b) => b.alt_top - a.alt_top
+};
+let DATA = [], MAX = 10, st = {...DEF};
 
-function bars(days, max) {
+function bars(days) {
   return '<div class="bars">' + days.map((d, i) => {
-    const cm = d.snow || 0;
-    const h = cm > 0 ? Math.max(3, Math.round(cm / max * 40)) : 2;
-    const cls = [i >= 7 ? 'f' : '', cm > 0 ? '' : 'z', i === 7 ? 't' : ''].join(' ').trim();
-    const fecha = new Date(d.date + 'T12:00:00').toLocaleDateString('es-ES', {day: 'numeric', month: 'short'});
-    return `<i class="${cls}" style="height:${h}px" title="${fecha}: ${fmt(cm)} cm"></i>`;
+    const c = d.snow || 0;
+    const h = c > 0 ? Math.max(3, Math.round(c / MAX * 44)) : 2;
+    const cls = [i >= 7 ? 'f' : '', c > 0 ? '' : 'z', i === 7 ? 't' : ''].join(' ').trim();
+    return `<i class="${cls}" style="height:${h}px" title="${day(d.date, {day: 'numeric', month: 'short'})}: ${fmt(c)} cm"></i>`;
   }).join('') + '</div>';
 }
 
-function render(d) {
-  const max = Math.max(10, ...d.stations.flatMap(s => s.days.map(x => x.snow || 0)));
-  const fecha = new Date(d.updated).toLocaleString('es-ES', {dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Madrid'});
-  document.getElementById('estado').textContent = 'Actualizado el ' + fecha + '.';
-  let html = '', region = '';
-  for (const s of d.stations) {
-    if (s.region !== region) { region = s.region; html += `<tr class="reg"><th colspan="5">${region}</th></tr>`; }
-    const enlace = s.web ? `<a href="${s.web}" rel="noopener">${s.name}</a>` : s.name;
-    const nombre = `<th scope="row">${enlace}<small>${s.alt_base}–${s.alt_top} m</small></th>`;
-    if (!s.days.length) { html += `<tr>${nombre}<td colspan="4">Sin datos hoy</td></tr>`; continue; }
-    const t = Math.round(s.temp_now);
-    html += `<tr>${nombre}<td class="n ${t > 0 ? 'warm' : ''}">${t}°</td>` +
-      `<td class="n">${fmt(sum(s.days.slice(0, 7)))} cm</td>` +
-      `<td class="n">${fmt(sum(s.days.slice(7)))} cm</td>` +
-      `<td>${bars(s.days, max)}</td></tr>`;
-  }
-  document.getElementById('filas').innerHTML = html;
+function card(s, showReg) {
+  const top = `<div class="top"><div><h3>${s.name}</h3>${showReg ? `<p class="rg">${s.region}</p>` : ''}</div>` +
+    (s.ok ? `<span class="temp ${s.t > 0 ? 'warm' : 'cold'}">${s.t}°</span>` : '') + '</div>';
+  const body = s.ok
+    ? `<div class="nums"><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. 5 días</span></div></div>${bars(s.days)}`
+    : '<p class="nodata">Sin datos hoy</p>';
+  return `<button class="card" type="button" data-id="${s.id}">${top}${body}<p class="alt">${s.alt_base}–${s.alt_top} m</p></button>`;
 }
 
-fetch('data/latest.json').then(r => r.json()).then(render).catch(() => {
-  document.getElementById('estado').textContent = 'Todavía no hay datos. Ejecuta «Actualizar datos» en la pestaña Actions de GitHub.';
+function view() {
+  const q = norm(st.q.trim());
+  let f = DATA.filter(s =>
+    (!q || norm(s.name).includes(q)) &&
+    (!st.region || s.region === st.region) &&
+    s.alt_top > st.cota &&
+    (!st.nieve || (s.ok && (st.nieve === 'p7' ? s.p7 >= 1 : st.nieve === 'f5' ? s.f5 >= 1 : s.p7 >= 1 || s.f5 >= 1))));
+  $('#cuenta').textContent = `Mostrando ${f.length} de ${DATA.length} estaciones`;
+  const el = $('#lista');
+  if (!f.length) {
+    el.innerHTML = '<p class="vacio">Ninguna estación coincide con los filtros. <button class="btn" type="button" data-reset>Limpiar filtros</button></p>';
+    return;
+  }
+  if (st.orden === 'region') {
+    const rs = [...new Set(f.map(s => s.region))];
+    el.innerHTML = rs.map(r => `<h2 class="reg">${r}</h2><div class="grid">${f.filter(s => s.region === r).map(s => card(s, false)).join('')}</div>`).join('');
+  } else {
+    f = f.slice().sort(CMP[st.orden]);
+    el.innerHTML = `<div class="grid">${f.map(s => card(s, true)).join('')}</div>`;
+  }
+}
+
+function stats() {
+  const ok = DATA.filter(s => s.ok);
+  if (!ok.length) return;
+  const con = ok.filter(s => s.p7 >= 1).length;
+  const nv = ok.reduce((a, s) => s.f5 > a.f5 ? s : a, ok[0]);
+  const fr = ok.reduce((a, s) => s.t < a.t ? s : a, ok[0]);
+  $('#stats').innerHTML =
+    `<div class="stat"><b>${con} de ${DATA.length}</b><span>estaciones con nieve en los últimos 7 días</span></div>` +
+    (nv.f5 >= 1
+      ? `<div class="stat"><b>${fmt(nv.f5)} cm</b><span>de nieve prevista en 5 días, el máximo, en ${nv.name}</span></div>`
+      : '<div class="stat"><b>0 cm</b><span>sin nevadas previstas en los próximos 5 días</span></div>') +
+    `<div class="stat"><b>${fr.t}°</b><span>la temperatura más baja ahora, en ${fr.name}</span></div>`;
+}
+
+function chart(days) {
+  const W = 640, L = 34, R = 8, B = 232, n = days.length, step = (W - L - R) / n, x = i => L + step * (i + .5);
+  const hi = Math.ceil(Math.max(...days.map(d => d.tmax), 0)) + 1;
+  const lo = Math.floor(Math.min(...days.map(d => d.tmin), 0)) - 1;
+  const ty = t => 24 + (hi - t) / (hi - lo) * 82;
+  const sm = Math.max(5, ...days.map(d => d.snow || 0)), sy = c => B - c / sm * 70, bw = step * .6;
+  const pts = k => days.map((d, i) => `${x(i).toFixed(1)},${ty(d[k]).toFixed(1)}`).join(' ');
+  const cut = L + step * 7;
+  let s = `<svg class="ch" viewBox="0 0 ${W} 272" role="img" aria-label="Temperaturas y nieve diaria: 7 días pasados y previsión">`;
+  s += `<line class="z0" x1="${L}" x2="${W - R}" y1="${ty(0)}" y2="${ty(0)}"/>`;
+  s += [hi, 0, lo].map(v => `<text class="ax" x="${L - 6}" y="${ty(v) + 4}" text-anchor="end">${v}°</text>`).join('');
+  s += `<polyline class="lh" points="${pts('tmax')}"/><polyline class="ll" points="${pts('tmin')}"/>`;
+  s += `<line class="gl" x1="${L}" x2="${W - R}" y1="${B}" y2="${B}"/><line class="cut" x1="${cut}" x2="${cut}" y1="4" y2="258"/>`;
+  s += `<text class="ax" x="${L}" y="12">Últimos 7 días</text><text class="ax" x="${cut + 6}" y="12">Previsión</text>`;
+  days.forEach((d, i) => {
+    const c = d.snow || 0, f = i >= 7 ? ' f' : '', t = day(d.date, {weekday: 'long', day: 'numeric', month: 'long'});
+    s += `<circle class="dh1" cx="${x(i)}" cy="${ty(d.tmax)}" r="3"><title>${t}: máxima ${Math.round(d.tmax)}°</title></circle>`;
+    s += `<circle class="dl1" cx="${x(i)}" cy="${ty(d.tmin)}" r="3"><title>${t}: mínima ${Math.round(d.tmin)}°</title></circle>`;
+    s += c > 0
+      ? `<rect class="b${f}" x="${x(i) - bw / 2}" y="${sy(c)}" width="${bw}" height="${B - sy(c)}"><title>${t}: ${fmt(c)} cm</title></rect>`
+      : `<rect class="b z" x="${x(i) - bw / 2}" y="${B - 1.5}" width="${bw}" height="1.5"><title>${t}: sin nieve</title></rect>`;
+    if (c >= 0.5) s += `<text class="ax" x="${x(i)}" y="${sy(c) - 4}" text-anchor="middle">${fmt(c)}</text>`;
+    s += `<text class="ax" x="${x(i)}" y="250" text-anchor="middle">${day(d.date, {weekday: 'short'})}</text>`;
+    s += `<text class="ax" x="${x(i)}" y="264" text-anchor="middle">${day(d.date, {day: 'numeric'})}</text>`;
+  });
+  return s + '</svg>';
+}
+
+function open(id) {
+  const s = DATA.find(x => x.id === id), d = $('#det');
+  const mid = Math.round((s.alt_base + s.alt_top) / 2);
+  d.querySelector('.in').innerHTML =
+    `<div class="dh"><div><h2>${s.name}</h2><p class="sub">${s.region}, de ${s.alt_base} a ${s.alt_top} m</p></div><button class="btn x" type="button">Cerrar</button></div>` +
+    (s.ok
+      ? `<div class="nums"><div><b class="${s.t > 0 ? 'warm' : 'cold'}">${s.t}°</b><span>ahora</span></div><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. 5 días</span></div></div>${chart(s.days)}` +
+        '<div class="lg"><span><i style="background:var(--warm)"></i>Máxima</span><span><i style="background:var(--cold)"></i>Mínima</span><span><i style="background:var(--snow)"></i>Nieve caída</span><span><i style="background:var(--fc)"></i>Nieve prevista</span></div>'
+      : '<p class="nodata">Sin datos hoy para esta estación.</p>') +
+    `<p class="note">Valores estimados por modelo (Open-Meteo) para ${mid} m de altitud. Todavía no son datos oficiales de la estación.</p>` +
+    (s.web ? `<a class="go" href="${s.web}" target="_blank" rel="noopener">Web oficial de la estación</a>` : '');
+  d.showModal();
+}
+
+function reset() {
+  st = {...DEF};
+  for (const k in st) $('#' + k).value = st[k];
+  view();
+}
+
+['q', 'region', 'cota', 'nieve', 'orden'].forEach(id =>
+  $('#' + id).addEventListener(id === 'q' ? 'input' : 'change', e => {
+    st[id] = id === 'cota' ? +e.target.value : e.target.value;
+    view();
+  }));
+$('#reset').addEventListener('click', reset);
+$('#lista').addEventListener('click', e => {
+  if (e.target.closest('[data-reset]')) return reset();
+  const c = e.target.closest('.card');
+  if (c) open(c.dataset.id);
+});
+$('#det').addEventListener('click', e => {
+  if (e.target.id === 'det' || e.target.closest('.x')) e.currentTarget.close();
+});
+
+fetch('data/latest.json').then(r => r.json()).then(d => {
+  DATA = d.stations.map(s => ({...s, ok: s.days.length > 0, t: Math.round(s.temp_now), p7: sum(s.days.slice(0, 7)), f5: sum(s.days.slice(7))}));
+  MAX = Math.max(10, ...DATA.flatMap(s => s.days.map(x => x.snow || 0)));
+  $('#estado').textContent = 'Actualizado el ' + new Date(d.updated).toLocaleString('es-ES', {dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Madrid'}) + '.';
+  $('#region').innerHTML = '<option value="">Todas</option>' + [...new Set(DATA.map(s => s.region))].map(r => `<option>${r}</option>`).join('');
+  stats();
+  view();
+}).catch(() => {
+  $('#estado').textContent = 'Todavía no hay datos. Ejecuta «Actualizar datos» en la pestaña Actions de GitHub.';
 });
 </script>
 </body>
