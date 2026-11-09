@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nieve en las estaciones</title>
+<style>
+:root{--bg:#edf2f5;--panel:#fff;--ink:#13212c;--muted:#5b6b78;--line:#d3dee5;--snow:#1d6fb8;--fc:#9cc3e6;--warm:#b4532a;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a22;--panel:#16232d;--ink:#e6eef3;--muted:#92a4b1;--line:#273945;--snow:#5aa8e6;--fc:#2f5878;--warm:#e0875a}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:960px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:1.7rem;margin:0 0 4px;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 20px;max-width:62ch}
+.wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{padding:10px 14px;text-align:left;border-top:1px solid var(--line);vertical-align:middle}
+thead th{border-top:0;font-size:.85rem;font-weight:500;color:var(--muted)}
+tbody th{font-weight:600}
+th small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+td.n,thead th.n{text-align:right;white-space:nowrap}
+tr.reg th{background:var(--bg);font-size:.85rem;color:var(--muted);font-weight:600;padding:8px 14px}
+.warm{color:var(--warm)}
+a{color:inherit;text-underline-offset:3px}
+a:hover{color:var(--snow)}
+a:focus-visible{outline:2px solid var(--snow);outline-offset:2px}
+.bars{display:flex;align-items:flex-end;gap:2px;height:40px}
+.bars i{width:6px;background:var(--snow);border-radius:1px}
+.bars i.f{background:var(--fc)}
+.bars i.z{background:var(--line)}
+.bars i.t{margin-left:6px}
+footer{margin-top:16px;color:var(--muted);font-size:.85rem;max-width:70ch}
+</style>
+</head>
+<body>
+<main>
+<h1>Nieve en las estaciones</h1>
+<p class="sub" id="estado">Cargando datos…</p>
+<div class="wrap">
+<table>
+<thead><tr><th>Estación</th><th class="n">Ahora</th><th class="n">Últimos 7 días</th><th class="n">Próx. 5 días</th><th>Nieve por día</th></tr></thead>
+<tbody id="filas"></tbody>
+</table>
+</div>
+<footer>
+Las barras muestran la nieve diaria: 7 días pasados, y hoy más 4 días de previsión en azul claro. La nieve es la estimada por el modelo meteorológico, no la medida por cada estación. Los datos oficiales de las estaciones se añadirán después.
+Datos meteorológicos: <a href="https://open-meteo.com/">Open-Meteo.com</a>.
+</footer>
+</main>
+<script>
+const fmt = n => (Math.round(n * 10) / 10).toString().replace('.', ',');
+const sum = a => a.reduce((t, d) => t + (d.snow || 0), 0);
+
+function bars(days, max) {
+  return '<div class="bars">' + days.map((d, i) => {
+    const cm = d.snow || 0;
+    const h = cm > 0 ? Math.max(3, Math.round(cm / max * 40)) : 2;
+    const cls = [i >= 7 ? 'f' : '', cm > 0 ? '' : 'z', i === 7 ? 't' : ''].join(' ').trim();
+    const fecha = new Date(d.date + 'T12:00:00').toLocaleDateString('es-ES', {day: 'numeric', month: 'short'});
+    return `<i class="${cls}" style="height:${h}px" title="${fecha}: ${fmt(cm)} cm"></i>`;
+  }).join('') + '</div>';
+}
+
+function render(d) {
+  const max = Math.max(10, ...d.stations.flatMap(s => s.days.map(x => x.snow || 0)));
+  const fecha = new Date(d.updated).toLocaleString('es-ES', {dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Madrid'});
+  document.getElementById('estado').textContent = 'Actualizado el ' + fecha + '.';
+  let html = '', region = '';
+  for (const s of d.stations) {
+    if (s.region !== region) { region = s.region; html += `<tr class="reg"><th colspan="5">${region}</th></tr>`; }
+    const enlace = s.web ? `<a href="${s.web}" rel="noopener">${s.name}</a>` : s.name;
+    const nombre = `<th scope="row">${enlace}<small>${s.alt_base}–${s.alt_top} m</small></th>`;
+    if (!s.days.length) { html += `<tr>${nombre}<td colspan="4">Sin datos hoy</td></tr>`; continue; }
+    const t = Math.round(s.temp_now);
+    html += `<tr>${nombre}<td class="n ${t > 0 ? 'warm' : ''}">${t}°</td>` +
+      `<td class="n">${fmt(sum(s.days.slice(0, 7)))} cm</td>` +
+      `<td class="n">${fmt(sum(s.days.slice(7)))} cm</td>` +
+      `<td>${bars(s.days, max)}</td></tr>`;
+  }
+  document.getElementById('filas').innerHTML = html;
+}
+
+fetch('data/latest.json').then(r => r.json()).then(render).catch(() => {
+  document.getElementById('estado').textContent = 'Todavía no hay datos. Ejecuta «Actualizar datos» en la pestaña Actions de GitHub.';
+});
+</script>
+</body>
+</html>
