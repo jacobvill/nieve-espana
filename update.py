@@ -51,7 +51,7 @@ def main():
     }
     for st in stations:
         out["stations"].append({**st, **fetch(st)})
-        time.sleep(0.5)
+        time.sleep(0.3)
     if not any(s["days"] for s in out["stations"]):
         raise SystemExit("Ninguna estación devolvió datos; no se sobrescribe latest.json")
     dest = ROOT / "data" / "latest.json"

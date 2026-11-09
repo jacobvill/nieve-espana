@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nieve en España</title>
-<meta name="description" content="Nieve caída, temperatura y previsión en las estaciones de esquí de España.">
+<title>Nieve en Europa</title>
+<meta name="description" content="Nieve caída, temperatura y previsión en las estaciones de esquí de los Pirineos y los Alpes.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -110,7 +110,7 @@ a{text-underline-offset:3px}
 <svg class="rd" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path class="r3" d="M0 205L140 188L300 204L470 186L640 206L820 190L1000 206L1180 188L1340 205L1440 194V210H0Z"/></svg>
 <canvas id="snow" aria-hidden="true"></canvas>
 <div class="hero-in">
-<h1>Nieve en España</h1>
+<h1>Nieve en Europa</h1>
 <p class="sub" id="estado">Cargando datos…</p>
 <section class="stats" id="stats"></section>
 </div>
@@ -120,8 +120,8 @@ a{text-underline-offset:3px}
 <h2>Filtros</h2>
 <form onsubmit="return false">
 <label>Buscar<input id="q" type="search" placeholder="Nombre de la estación" autocomplete="off"></label>
-<label>Región<select id="region"></select></label>
-<label>Cota máxima<select id="cota"><option value="0">Cualquiera</option><option value="2000">Más de 2.000 m</option><option value="2500">Más de 2.500 m</option><option value="3000">Más de 3.000 m</option></select></label>
+<label>País y región<select id="region"></select></label>
+<label>Cota máxima<select id="cota"><option value="0">Cualquiera</option><option value="2000">Más de 2.000 m</option><option value="2500">Más de 2.500 m</option><option value="3000">Más de 3.000 m</option><option value="3500">Más de 3.500 m</option></select></label>
 <label>Nieve<select id="nieve"><option value="">Toda</option><option value="p7">Con nieve en 7 días</option><option value="f5">Con nieve prevista</option><option value="any">Reciente o prevista</option></select></label>
 <label>Mostrar<select id="mostrar"><option value="">Todas</option><option value="fav">Solo favoritas</option></select></label>
 <label>Ordenar por<select id="orden"><option value="region">Región</option><option value="nombre">Nombre</option><option value="p7">Más nieve caída</option><option value="f5">Más nieve prevista</option><option value="frio">Más frío ahora</option><option value="cota">Cota máxima</option></select></label>
@@ -167,7 +167,7 @@ function bars(days) {
 function card(s, showReg) {
   const tag = !s.ok ? null : s.p7 >= 1 ? ['Nevó', 'n'] : s.f5 >= 1 ? ['Nevará', 'f'] : ['Sin nieve', 'z'];
   const fav = FAV.has(s.id);
-  const l = Math.max(0, (s.alt_base - 1400) / 20), w = Math.max(4, (s.alt_top - s.alt_base) / 20);
+  const l = Math.max(0, (s.alt_base - 500) / 34), w = Math.max(4, (s.alt_top - s.alt_base) / 34);
   return `<article class="card" tabindex="0" role="button" data-id="${s.id}" aria-label="${s.name}: ver detalle">` +
     `<div class="top"><div><h3>${s.name}</h3><p class="rg">${tag ? `<span class="chip ${tag[1]}">${tag[0]}</span>` : ''}${showReg ? s.region : ''}</p></div>` +
     (s.ok ? `<span class="temp ${s.t > 0 ? 'warm' : 'cold'}">${s.t}°</span>` : '') + '</div>' +
@@ -182,7 +182,7 @@ function view() {
   const q = norm(st.q.trim());
   let f = DATA.filter(s =>
     (!q || norm(s.name).includes(q)) &&
-    (!st.region || s.region === st.region) &&
+    (!st.region || (st.region.startsWith('c:') ? s.country === st.region.slice(2) : s.region === st.region)) &&
     s.alt_top > st.cota &&
     (st.mostrar !== 'fav' || FAV.has(s.id)) &&
     (!st.nieve || (s.ok && (st.nieve === 'p7' ? s.p7 >= 1 : st.nieve === 'f5' ? s.f5 >= 1 : s.p7 >= 1 || s.f5 >= 1))));
@@ -339,7 +339,11 @@ fetch('data/latest.json').then(r => r.json()).then(d => {
   DATA = d.stations.map(s => ({...s, ok: s.days.length > 0, t: Math.round(s.temp_now), p7: sum(s.days.slice(0, 7)), f5: sum(s.days.slice(7))}));
   MAX = Math.max(10, ...DATA.flatMap(s => s.days.map(x => x.snow || 0)));
   $('#estado').textContent = 'Actualizado el ' + new Date(d.updated).toLocaleString('es-ES', {dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Madrid'}) + '.';
-  $('#region').innerHTML = '<option value="">Todas</option>' + [...new Set(DATA.map(s => s.region))].map(r => `<option>${r}</option>`).join('');
+  const PAIS = {ES: 'España', AD: 'Andorra', FR: 'Francia', CH: 'Suiza', AT: 'Austria', IT: 'Italia'};
+  $('#region').innerHTML = '<option value="">Todos los países</option>' + Object.keys(PAIS).filter(c => DATA.some(s => s.country === c)).map(c => {
+    const rs = [...new Set(DATA.filter(s => s.country === c).map(s => s.region))];
+    return `<optgroup label="${PAIS[c]}"><option value="c:${c}">${PAIS[c]} entera</option>${rs.length > 1 ? rs.map(r => `<option>${r}</option>`).join('') : ''}</optgroup>`;
+  }).join('');
   stats();
   view();
 }).catch(() => {
