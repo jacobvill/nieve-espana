@@ -1,42 +1,79 @@
-"""Baja previsión y nieve modelada de Open-Meteo y escribe docs/data/latest.json."""
+"""Baja previsión, viento, sol y nieve modelada de Open-Meteo y escribe data/latest.json."""
 import datetime
 import json
 import pathlib
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent
 API = "https://api.open-meteo.com/v1/forecast"
+BASE = {
+    "daily": "temperature_2m_max,temperature_2m_min,snowfall_sum",
+    "current": "temperature_2m",
+}
+EXTRA = {
+    "daily": BASE["daily"] + ",weather_code,wind_speed_10m_max,wind_gusts_10m_max,sunshine_duration",
+    "current": "temperature_2m,wind_speed_10m,wind_gusts_10m,cloud_cover",
+}
 
 
-def fetch(st):
+def get(st, variables):
     q = {
         "latitude": st["lat"],
         "longitude": st["lon"],
         "elevation": round((st["alt_base"] + st["alt_top"]) / 2),
-        "current": "temperature_2m",
-        "daily": "temperature_2m_max,temperature_2m_min,snowfall_sum",
+        "current": variables["current"],
+        "daily": variables["daily"],
         "past_days": 7,
         "forecast_days": 5,
         "timezone": "Europe/Madrid",
     }
     url = API + "?" + urllib.parse.urlencode(q)
+    with urllib.request.urlopen(url, timeout=30) as r:
+        return json.load(r)
+
+
+def parse(d):
+    dl, cu = d["daily"], d["current"]
+    n = len(dl["time"])
+
+    def col(k):
+        return dl.get(k) or [None] * n
+
+    days = []
+    for i in range(n):
+        sun = col("sunshine_duration")[i]
+        days.append({
+            "date": dl["time"][i],
+            "tmin": dl["temperature_2m_min"][i],
+            "tmax": dl["temperature_2m_max"][i],
+            "snow": dl["snowfall_sum"][i],
+            "code": col("weather_code")[i],
+            "wind": col("wind_speed_10m_max")[i],
+            "gust": col("wind_gusts_10m_max")[i],
+            "sun": None if sun is None else round(sun / 3600, 1),
+        })
+    return {
+        "temp_now": cu["temperature_2m"],
+        "wind_now": cu.get("wind_speed_10m"),
+        "gust_now": cu.get("wind_gusts_10m"),
+        "cloud_now": cu.get("cloud_cover"),
+        "days": days,
+    }
+
+
+def fetch(st):
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(url, timeout=30) as r:
-                d = json.load(r)
-            dl = d["daily"]
-            days = [
-                {"date": t, "tmin": lo, "tmax": hi, "snow": sn}
-                for t, lo, hi, sn in zip(
-                    dl["time"],
-                    dl["temperature_2m_min"],
-                    dl["temperature_2m_max"],
-                    dl["snowfall_sum"],
-                )
-            ]
-            return {"temp_now": d["current"]["temperature_2m"], "days": days}
+            try:
+                return parse(get(st, EXTRA))
+            except urllib.error.HTTPError as e:
+                if e.code != 400:
+                    raise
+                print(f"{st['id']}: variables extra no admitidas, uso las básicas")
+                return parse(get(st, BASE))
         except Exception as e:  # noqa: BLE001
             print(f"{st['id']}: intento {attempt + 1} fallido: {e}")
             time.sleep(3)
