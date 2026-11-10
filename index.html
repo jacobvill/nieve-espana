@@ -81,6 +81,7 @@ select{padding-right:30px;appearance:none;background-image:url("data:image/svg+x
 .fav.on{color:var(--accent)}
 .nodata,.vacio{color:var(--muted);margin:14px 0 0}
 [hidden]{display:none!important}
+@media (prefers-color-scheme:dark){.leaflet-tile-pane{filter:brightness(.78) contrast(1.05)}}
 .tools{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:0 0 12px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{all:unset;cursor:pointer;padding:9px 16px;color:var(--muted);background:var(--card)}
@@ -319,8 +320,7 @@ function drawMap() {
   loadLeaflet(() => {
     if (!MAP) {
       MAP = L.map('mapa').setView([46, 8], 5);
-      const dk = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark_all' : 'light_all';
-      L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dk}/{z}/{x}/{y}{r}.png`, {maxZoom: 12, attribution: '© OpenStreetMap, © CARTO'}).addTo(MAP);
+      L.tileLayer('https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png', {maxZoom: 13, attribution: '<a href="https://github.com/sletuffe/OpenTopoMap">© OpenTopoMap-R</a> <a href="https://openmaps.fr/donate">❤️ Donation</a> <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'}).addTo(MAP);
       LAY = L.layerGroup().addTo(MAP);
     }
     MAP.invalidateSize();
