@@ -27,7 +27,7 @@ def get(st, variables):
         "current": variables["current"],
         "daily": variables["daily"],
         "past_days": 7,
-        "forecast_days": 5,
+        "forecast_days": 7,
         "timezone": "Europe/Madrid",
     }
     url = API + "?" + urllib.parse.urlencode(q)

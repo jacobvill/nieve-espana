@@ -81,7 +81,7 @@ select{padding-right:30px;appearance:none;background-image:url("data:image/svg+x
 .fav.on{color:var(--accent)}
 .nodata,.vacio{color:var(--muted);margin:14px 0 0}
 [hidden]{display:none!important}
-@media (prefers-color-scheme:dark){.leaflet-tile-pane{filter:brightness(.78) contrast(1.05)}}
+@media (prefers-color-scheme:dark){.osm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.85) saturate(.6)}.topo{filter:brightness(.8)}}
 .tools{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:0 0 12px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{all:unset;cursor:pointer;padding:9px 16px;color:var(--muted);background:var(--card)}
@@ -91,10 +91,17 @@ select{padding-right:30px;appearance:none;background-image:url("data:image/svg+x
 #mapa{height:min(72vh,720px);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 #mleg{margin-top:10px}
 .temp .ic{font-size:1.5rem;margin-right:4px;vertical-align:2px}
-.fc{display:grid;grid-template-columns:repeat(5,minmax(104px,1fr));gap:8px;overflow-x:auto;margin:14px 0 4px}
+.fc{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(104px,1fr);gap:8px;overflow-x:auto;margin:14px 0 4px}
 .fc div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;font-size:.8rem;color:var(--muted)}
 .fc b{font:600 1.15rem var(--disp);color:var(--ink);text-transform:capitalize}
 .fc .ic{font-size:1.5rem;line-height:1.2}
+.mt{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px}
+.mt input[type=range]{flex:1 1 200px;width:auto;min-height:0;padding:0;border:0;background:none;accent-color:var(--accent)}
+.mt .btn{min-height:38px;padding:6px 14px}
+#dl{display:inline-block;min-width:150px;font-weight:600}
+#dl::first-letter{text-transform:uppercase}
+.tools .share{margin-left:auto}
+.mc b{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#0a6fb7;color:#fff;border:2px solid #fff;font:600 14px Barlow,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto}
 dialog::backdrop{background:rgba(5,15,25,.6)}
 @media (prefers-reduced-motion:no-preference){dialog[open]{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
@@ -152,7 +159,14 @@ a{text-underline-offset:3px}
 <section>
 <div class="tools">
 <div class="seg" role="group" aria-label="Vista"><button type="button" id="vc" aria-pressed="true">Tarjetas</button><button type="button" id="vm" aria-pressed="false">Mapa</button></div>
-<label id="cm" hidden>Colorear por<select id="cmsel"><option value="p7">Nieve últimos 7 días</option><option value="f5">Nieve próx. 5 días</option><option value="t">Temperatura ahora</option></select></label>
+<label id="cm" hidden>Colorear por<select id="cmsel"><option value="d">Nieve por día</option><option value="w">Nieve del fin de semana</option><option value="p7">Nieve últimos 7 días</option><option value="f5">Nieve prevista</option><option value="t">Temperatura ahora</option></select></label>
+<button class="btn share" id="share" type="button">Copiar enlace</button>
+</div>
+<div class="mt" id="mt" hidden>
+<button class="btn" id="play" type="button" aria-label="Reproducir">▶</button>
+<input type="range" id="dia" min="0" max="13" value="7" aria-label="Día">
+<span id="dl"></span>
+<button class="btn" type="button" data-p="hoy">Hoy</button><button class="btn" type="button" data-p="man">Mañana</button><button class="btn" type="button" data-p="fin">Fin de semana</button>
 </div>
 <p id="cuenta"></p>
 <div id="lista"></div>
@@ -160,7 +174,7 @@ a{text-underline-offset:3px}
 <div class="lg" id="mleg" hidden></div>
 </section>
 <footer>
-Las barras muestran la nieve diaria: 7 días pasados y, en azul claro, hoy y los 4 días siguientes. La nieve y la temperatura se calculan con el modelo meteorológico de Open-Meteo para la altitud media de cada estación. Datos meteorológicos: <a href="https://open-meteo.com/">Open-Meteo.com</a>.
+Las barras muestran la nieve diaria: 7 días pasados y, en azul claro, hoy y los días siguientes. La nieve y la temperatura se calculan con el modelo meteorológico de Open-Meteo para la altitud media de cada estación. Datos meteorológicos: <a href="https://open-meteo.com/">Open-Meteo.com</a>.
 </footer>
 </div>
 <dialog id="det"><div class="in"></div></dialog>
@@ -200,7 +214,7 @@ function card(s, showReg) {
     `<div class="top"><div><h3>${s.name}</h3><p class="rg">${tag ? `<span class="chip ${tag[1]}">${tag[0]}</span>` : ''}${showReg ? s.region : ''}</p></div>` +
     (s.ok ? `<span class="temp ${s.t > 0 ? 'warm' : 'cold'}">${wi(s)}${s.t}°</span>` : '') + '</div>' +
     (s.ok
-      ? `<div class="nums"><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. 5 días</span></div></div>${bars(s.days)}`
+      ? `<div class="nums"><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. ${FD} días</span></div></div>${bars(s.days)}`
       : '<p class="nodata">Sin datos hoy</p>') +
     `<div class="foot"><div class="alt"><span>${s.alt_base}</span><div class="trk"><b style="left:${l}%;width:${w}%"></b></div><span>${s.alt_top} m</span></div>` +
     `<button class="fav${fav ? ' on' : ''}" type="button" aria-pressed="${fav}" aria-label="${fav ? 'Quitar de favoritas' : 'Añadir a favoritas'}">${fav ? '★' : '☆'}</button></div></article>`;
@@ -240,8 +254,8 @@ function stats() {
   $('#stats').innerHTML =
     `<div class="stat"><b>${con} de ${DATA.length}</b><span>estaciones con nieve en los últimos 7 días</span></div>` +
     (nv.f5 >= 1
-      ? `<div class="stat"><b>${fmt(nv.f5)} cm</b><span>de nieve prevista en 5 días, el máximo, en ${nv.name}</span></div>`
-      : '<div class="stat"><b>0 cm</b><span>sin nevadas previstas en los próximos 5 días</span></div>') +
+      ? `<div class="stat"><b>${fmt(nv.f5)} cm</b><span>de nieve prevista en ${FD} días, el máximo, en ${nv.name}</span></div>`
+      : `<div class="stat"><b>0 cm</b><span>sin nevadas previstas en los próximos ${FD} días</span></div>`) +
     `<div class="stat"><b>${fr.t}°</b><span>la temperatura más baja ahora, en ${fr.name}</span></div>`;
 }
 
@@ -273,7 +287,7 @@ function chart(days) {
   return s + '</svg>';
 }
 
-function view() { render(); drawMap(); }
+function view() { render(); drawMap(); hashSave(); }
 
 const ICON = c => c == null ? '' : c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 57 ? '🌦️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌧️' : c <= 86 ? '🌨️' : '⛈️';
 const wi = s => { const i = s.days[7] ? ICON(s.days[7].code) : ''; return i ? `<span class="ic">${i}</span>` : ''; };
@@ -291,22 +305,37 @@ function fcBlock(s) {
     `<div><b>${day(d.date, {weekday: 'short'})}</b><span class="ic">${ICON(d.code)}</span><span>${Math.round(d.tmin)}° / ${Math.round(d.tmax)}°</span><span>Viento ${Math.round(d.wind)} km/h</span><span>Rachas ${Math.round(d.gust)} km/h</span><span>Sol ${d.sun == null ? '–' : fmt(d.sun)} h</span></div>`).join('') + '</div>';
 }
 
-let MAP = null, LAY = null, CM = 'p7', VM = false, LQ = null;
+let MAP = null, LAY = null, CM = 'd', VM = false, LQ = null, DI = 7, FD = 5, TM = null, WI = [], REFD = [];
 const SCALE = ['#8aa0b0', '#a5d3f6', '#4aa3e8', '#0a5fa8'];
-const mcol = s => !s.ok ? SCALE[0] : CM === 't' ? (s.t > 0 ? '#e0743a' : '#3f86d8') : s[CM] < 1 ? SCALE[0] : s[CM] < 5 ? SCALE[1] : s[CM] < 15 ? SCALE[2] : SCALE[3];
+const snowAt = (s, i) => s.days[i] ? s.days[i].snow || 0 : 0;
+const val = s => !s.ok ? 0 : CM === 'd' ? snowAt(s, DI) : CM === 'w' ? WI.reduce((t, i) => t + snowAt(s, i), 0) : s[CM];
+const mcol = s => {
+  if (!s.ok) return SCALE[0];
+  if (CM === 't') return s.t > 0 ? '#e0743a' : '#3f86d8';
+  const v = val(s);
+  return v < 1 ? SCALE[0] : v < 5 ? SCALE[1] : v < 15 ? SCALE[2] : SCALE[3];
+};
 
+function loadJS(src, cb) {
+  const j = document.createElement('script');
+  j.src = src;
+  j.onload = cb;
+  document.head.appendChild(j);
+}
+function loadCss(href) {
+  const c = document.createElement('link');
+  c.rel = 'stylesheet';
+  c.href = href;
+  document.head.appendChild(c);
+}
 function loadLeaflet(cb) {
-  if (window.L) return cb();
+  if (window.L && L.markerClusterGroup) return cb();
   if (LQ) return LQ.push(cb);
   LQ = [cb];
-  const css = document.createElement('link');
-  css.rel = 'stylesheet';
-  css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-  document.head.appendChild(css);
-  const js = document.createElement('script');
-  js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
-  js.onload = () => LQ.forEach(f => f());
-  document.head.appendChild(js);
+  const B = 'https://cdnjs.cloudflare.com/ajax/libs/';
+  loadCss(B + 'leaflet/1.9.4/leaflet.min.css');
+  loadCss(B + 'leaflet.markercluster/1.5.3/MarkerCluster.css');
+  loadJS(B + 'leaflet/1.9.4/leaflet.min.js', () => loadJS(B + 'leaflet.markercluster/1.5.3/leaflet.markercluster.js', () => LQ.forEach(f => f())));
 }
 
 function legend() {
@@ -314,35 +343,94 @@ function legend() {
   $('#mleg').innerHTML = L.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('');
 }
 
-function drawMap() {
+function drawMap(fit = true) {
   if (!VM) return;
   legend();
   loadLeaflet(() => {
     if (!MAP) {
       MAP = L.map('mapa').setView([46, 8], 5);
-      L.tileLayer('https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png', {maxZoom: 13, attribution: '<a href="https://github.com/sletuffe/OpenTopoMap">© OpenTopoMap-R</a> <a href="https://openmaps.fr/donate">❤️ Donation</a> <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'}).addTo(MAP);
-      LAY = L.layerGroup().addTo(MAP);
+      const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 14, className: 'osm', attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(MAP);
+      const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {maxZoom: 14, className: 'topo', attribution: '© OpenStreetMap, SRTM | © <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)'});
+      L.control.layers({'Mapa': osm, 'Relieve': topo}, null, {collapsed: false}).addTo(MAP);
+      LAY = L.markerClusterGroup({maxClusterRadius: 40, showCoverageOnHover: false, iconCreateFunction: c => L.divIcon({html: `<b>${c.getChildCount()}</b>`, className: 'mc', iconSize: [34, 34]})}).addTo(MAP);
     }
     MAP.invalidateSize();
     LAY.clearLayers();
     CUR.forEach(s => {
-      const v = !s.ok ? 'sin datos' : CM === 't' ? s.t + '°' : fmt(s[CM]) + ' cm';
-      L.circleMarker([s.lat, s.lon], {radius: CM === 't' || !s.ok ? 8 : 7 + Math.min(7, s[CM] / 3), color: '#fff', weight: 1.5, fillColor: mcol(s), fillOpacity: .9})
-        .bindTooltip(`${s.name}: ${v}`).on('click', () => open(s.id)).addTo(LAY);
+      const v = !s.ok ? 'sin datos' : CM === 't' ? s.t + '°' : fmt(val(s)) + ' cm';
+      LAY.addLayer(L.circleMarker([s.lat, s.lon], {radius: CM === 't' || !s.ok ? 8 : 7 + Math.min(7, val(s) / 3), color: '#fff', weight: 1.5, fillColor: mcol(s), fillOpacity: .9})
+        .bindTooltip(`${s.name}: ${v}`).on('click', () => open(s.id)));
     });
-    if (CUR.length) MAP.fitBounds(CUR.map(s => [s.lat, s.lon]), {padding: [30, 30], maxZoom: 9});
+    if (fit && CUR.length) MAP.fitBounds(CUR.map(s => [s.lat, s.lon]), {padding: [30, 30], maxZoom: 9});
   });
 }
 
 function setView(map) {
   VM = map;
+  stopPlay();
   $('#vc').setAttribute('aria-pressed', !map);
   $('#vm').setAttribute('aria-pressed', map);
   $('#lista').hidden = map;
   $('#mapa').hidden = !map;
   $('#mleg').hidden = !map;
   $('#cm').hidden = !map;
+  $('#mt').hidden = !map;
+  dayLabel();
   drawMap();
+  hashSave();
+}
+
+function dayLabel() {
+  const d = REFD[DI];
+  $('#dl').textContent = CM === 'w' ? 'Sábado y domingo' : CM === 'd' && d ? day(d.date, {weekday: 'long', day: 'numeric', month: 'short'}) + (DI === 7 ? ', hoy' : '') : '';
+}
+function setDay(i) {
+  DI = i;
+  CM = 'd';
+  $('#cmsel').value = 'd';
+  $('#dia').value = i;
+  dayLabel();
+  legend();
+  drawMap(false);
+}
+function stopPlay() {
+  if (!TM) return;
+  clearInterval(TM);
+  TM = null;
+  $('#play').textContent = '▶';
+  $('#play').setAttribute('aria-label', 'Reproducir');
+}
+function togglePlay() {
+  if (TM) return stopPlay();
+  $('#play').textContent = '❚❚';
+  $('#play').setAttribute('aria-label', 'Pausar');
+  TM = setInterval(() => setDay((DI + 1) % REFD.length), 900);
+}
+
+const KEYS = ['q', 'region', 'cota', 'nieve', 'mostrar', 'orden'];
+function hashSave() {
+  try {
+    const p = new URLSearchParams();
+    KEYS.forEach(k => { if (String(st[k]) !== String(DEF[k])) p.set(k, st[k]); });
+    if (VM) p.set('vista', 'mapa');
+    history.replaceState(null, '', p.toString() ? '#' + p : location.pathname + location.search);
+  } catch (e) {}
+}
+function hashLoad() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  KEYS.forEach(k => {
+    if (!p.has(k)) return;
+    const el = $('#' + k);
+    el.value = p.get(k);
+    st[k] = k === 'cota' ? +el.value : el.value;
+  });
+  return p;
+}
+function copyLink(url, btn) {
+  const t = btn.textContent;
+  const done = () => { btn.textContent = '¡Enlace copiado!'; setTimeout(() => { btn.textContent = t; }, 1600); };
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => prompt('Copia este enlace:', url));
+  else prompt('Copia este enlace:', url);
 }
 
 function altBlock(s, mid) {
@@ -357,9 +445,9 @@ function open(id) {
   const mid = Math.round((s.alt_base + s.alt_top) / 2);
   d.querySelector('.in').innerHTML =
     `<div class="dh"><div><h2>${s.name}</h2><p class="sub">${s.region === PAIS[s.country] ? s.region : s.region + ', ' + PAIS[s.country]}</p></div>` +
-    '<div class="acts"><button class="btn" type="button" data-dir="-1" aria-label="Estación anterior">‹</button><button class="btn" type="button" data-dir="1" aria-label="Estación siguiente">›</button><button class="btn x" type="button">Cerrar</button></div></div>' +
+    '<div class="acts"><button class="btn" type="button" data-dir="-1" aria-label="Estación anterior">‹</button><button class="btn" type="button" data-dir="1" aria-label="Estación siguiente">›</button><button class="btn" type="button" data-share>Compartir</button><button class="btn x" type="button">Cerrar</button></div></div>' +
     (s.ok
-      ? `<div class="nums"><div><b class="${s.t > 0 ? 'warm' : 'cold'}">${s.t}°</b><span>ahora</span></div><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. 5 días</span></div>${windNow(s)}</div>${altBlock(s, mid)}${chart(s.days)}${fcBlock(s)}` +
+      ? `<div class="nums"><div><b class="${s.t > 0 ? 'warm' : 'cold'}">${s.t}°</b><span>ahora</span></div><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. ${FD} días</span></div>${windNow(s)}</div>${altBlock(s, mid)}${chart(s.days)}${fcBlock(s)}` +
         '<div class="lg"><span><i style="background:var(--warm)"></i>Máxima</span><span><i style="background:var(--cold)"></i>Mínima</span><span><i style="background:var(--snow)"></i>Nieve caída</span><span><i style="background:var(--fc)"></i>Nieve prevista</span></div>'
       : '<p class="nodata">Sin datos hoy para esta estación.</p>') +
     `<p class="note">Temperatura y nieve calculadas con el modelo meteorológico Open-Meteo para ${mid} m, la altitud media de la estación.</p>` +
@@ -402,6 +490,8 @@ $('#lista').addEventListener('keydown', e => {
 });
 $('#det').addEventListener('click', e => {
   if (e.target.id === 'det' || e.target.closest('.x')) return e.currentTarget.close();
+  const sh = e.target.closest('[data-share]');
+  if (sh) return copyLink(location.href.split('#')[0] + '#s=' + ID, sh);
   const n = e.target.closest('[data-dir]');
   if (n) go(+n.dataset.dir);
 });
@@ -412,7 +502,17 @@ $('#det').addEventListener('keydown', e => {
 
 $('#vc').addEventListener('click', () => setView(false));
 $('#vm').addEventListener('click', () => setView(true));
-$('#cmsel').addEventListener('change', e => { CM = e.target.value; legend(); drawMap(); });
+$('#cmsel').addEventListener('change', e => { stopPlay(); CM = e.target.value; dayLabel(); legend(); drawMap(false); });
+$('#dia').addEventListener('input', e => { stopPlay(); setDay(+e.target.value); });
+$('#play').addEventListener('click', togglePlay);
+$('#mt').addEventListener('click', e => {
+  const b = e.target.closest('[data-p]');
+  if (!b) return;
+  stopPlay();
+  if (b.dataset.p === 'fin') { CM = 'w'; $('#cmsel').value = 'w'; dayLabel(); legend(); drawMap(false); }
+  else setDay(b.dataset.p === 'hoy' ? 7 : 8);
+});
+$('#share').addEventListener('click', e => { hashSave(); copyLink(location.href, e.currentTarget); });
 
 (function () {
   const hero = $('#hero');
@@ -453,8 +553,18 @@ fetch('data/latest.json').then(r => r.json()).then(d => {
     const rs = [...new Set(DATA.filter(s => s.country === c).map(s => s.region))];
     return `<optgroup label="${PAIS[c]}"><option value="c:${c}">${PAIS[c]} entera</option>${rs.length > 1 ? rs.map(r => `<option>${r}</option>`).join('') : ''}${DATA.filter(s => s.country === c).sort((a, b) => a.name.localeCompare(b.name, 'es')).map(s => `<option value="s:${s.id}">\u00a0\u00a0${s.name}</option>`).join('')}</optgroup>`;
   }).join('');
+  const ref = DATA.find(s => s.ok);
+  if (ref) {
+    REFD = ref.days;
+    FD = REFD.length - 7;
+    $('#dia').max = REFD.length - 1;
+    WI = REFD.map((d, i) => [i, new Date(d.date + 'T12:00:00').getDay()]).filter(([i, g]) => i >= 7 && (g === 0 || g === 6)).map(([i]) => i);
+  }
+  const hp = hashLoad();
   stats();
   view();
+  if (hp.get('vista') === 'mapa') setView(true);
+  if (DATA.some(x => x.id === hp.get('s'))) open(hp.get('s'));
 }).catch(() => {
   $('#estado').textContent = 'Todavía no hay datos. Ejecuta «Actualizar datos» en la pestaña Actions de GitHub.';
 });
