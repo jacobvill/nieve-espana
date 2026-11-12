@@ -1,8 +1,11 @@
-"""Baja previsión, viento, sol y nieve modelada de Open-Meteo y escribe data/latest.json."""
+"""Baja previsión, viento, sol y nieve modelada de Open-Meteo, busca webcams en la web
+oficial de cada estación y escribe data/latest.json."""
 import datetime
+import html.parser
 import json
 import pathlib
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -17,6 +20,7 @@ EXTRA = {
     "daily": BASE["daily"] + ",weather_code,wind_speed_10m_max,wind_gusts_10m_max,sunshine_duration",
     "current": "temperature_2m,wind_speed_10m,wind_gusts_10m,cloud_cover",
 }
+CAM_WORDS = ("webcam", "web-cam", "camara", "camera", "livecam", "live-cam", "kamera", "/cams")
 
 
 def get(st, variables):
@@ -80,14 +84,76 @@ def fetch(st):
     return {"temp_now": None, "days": []}
 
 
+class Links(html.parser.HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links, self._href, self._text = [], None, []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            self._href, self._text = dict(attrs).get("href"), []
+
+    def handle_data(self, data):
+        if self._href is not None:
+            self._text.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "a":
+            if self._href:
+                self.links.append((self._href, " ".join("".join(self._text).split())))
+            self._href = None
+
+
+def norm(s):
+    return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
+
+
+def webcams_from_html(page, base):
+    p = Links()
+    p.feed(page)
+    found, seen = [], set()
+    for href, text in p.links:
+        if href.startswith(("#", "mailto:", "tel:", "javascript:")):
+            continue
+        key = norm(href + " " + text)
+        url = urllib.parse.urljoin(base, href).split("#")[0]
+        if url in seen or not any(w in key for w in CAM_WORDS):
+            continue
+        seen.add(url)
+        found.append((0 if "webcam" in key else 1, {"title": (text[:40] or "Webcams"), "url": url}))
+    found.sort(key=lambda x: x[0])
+    return [c for _, c in found[:3]]
+
+
+def find_webcams(web):
+    req = urllib.request.Request(web, headers={"User-Agent": "Mozilla/5.0 (compatible; nieve-en-europa/1.0)"})
+    with urllib.request.urlopen(req, timeout=15) as r:
+        page = r.read(600_000).decode(r.headers.get_content_charset() or "utf-8", "replace")
+        return webcams_from_html(page, r.geturl())
+
+
 def main():
     stations = json.loads((ROOT / "stations.json").read_text(encoding="utf-8"))
+    overrides = {}
+    ov = ROOT / "webcams.json"
+    if ov.exists():
+        try:
+            overrides = json.loads(ov.read_text(encoding="utf-8"))
+        except ValueError:
+            print("webcams.json no es un JSON válido; lo ignoro")
     out = {
         "updated": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "stations": [],
     }
+    t0 = time.time()
     for st in stations:
-        out["stations"].append({**st, **fetch(st)})
+        cams = overrides.get(st["id"]) or []
+        if not cams and st.get("web") and time.time() - t0 < 240:
+            try:
+                cams = find_webcams(st["web"])
+            except Exception as e:  # noqa: BLE001
+                print(f"{st['id']}: sin webcams ({e})")
+        out["stations"].append({**st, **fetch(st), "webcams": cams})
         time.sleep(0.3)
     if not any(s["days"] for s in out["stations"]):
         raise SystemExit("Ninguna estación devolvió datos; no se sobrescribe latest.json")
@@ -95,7 +161,8 @@ def main():
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     ok = sum(1 for s in out["stations"] if s["days"])
-    print(f"OK: {ok}/{len(stations)} estaciones")
+    cams = sum(1 for s in out["stations"] if s["webcams"])
+    print(f"OK: {ok}/{len(stations)} estaciones, {cams} con enlace a webcams")
 
 
 if __name__ == "__main__":
