@@ -128,7 +128,57 @@ select{padding-right:30px;appearance:none;background-image:url("data:image/svg+x
 .scr{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;font-size:.85rem;color:var(--muted);margin:6px 0}
 .cams{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0;color:var(--muted);font-size:.85rem}
 .cams a{display:inline-flex;align-items:center;text-decoration:none;min-height:36px;padding:4px 12px}
-dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto}
+.hero2{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;margin:16px 0 8px}
+.nowb{display:flex;align-items:center;gap:14px}
+.nowb .bi{font-size:3.2rem;line-height:1}
+.nowb b{display:block;font:700 3rem/1 var(--disp)}
+.nowb span{display:block;font-size:.85rem;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;flex:1;min-width:280px}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.kpi b{display:block;font:700 1.6rem/1.1 var(--disp)}
+.kpi span{font-size:.78rem;color:var(--muted)}
+.summ{margin:10px 0 4px}
+.summ b{display:block;font-size:.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.summ p{margin:2px 0 10px;font-size:1.02rem}
+.sec{font-size:1.3rem;font-weight:600;margin:20px 0 6px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:6px 32px}
+.ftw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.ft{border-collapse:collapse;width:100%;min-width:560px;font-variant-numeric:tabular-nums}
+.ft th,.ft td{padding:6px 8px;text-align:center;border-top:1px solid var(--line);font-size:.88rem}
+.ft thead th{border-top:0;font-weight:400;color:var(--muted);font-size:.78rem}
+.ft thead th b{display:block;font:600 1.15rem var(--disp);color:var(--ink)}
+.ft tbody th{text-align:left;color:var(--muted);font-weight:500;position:sticky;left:0;background:var(--card);white-space:nowrap;z-index:1}
+.ft td small{display:block;color:var(--muted);font-size:.72rem}
+.ft td b{font-weight:600}
+.ft .ic{font-size:1.4rem;line-height:1.1;display:block}
+.ft .we{background:rgba(120,150,180,.1)}
+.ft .td{box-shadow:inset 0 -2px 0 var(--accent)}
+.ft.hidepast .past{display:none}
+.tg{display:inline-block;font-size:.68rem;font-weight:600;padding:1px 7px;border-radius:10px;margin:1px;white-space:nowrap;color:#fff}
+.tg.p{background:#1b78c4}
+.tg.g{background:#2a9d6f}
+.tg.w{background:#8a4fb0}
+.tg.h{background:#d9692f}
+.fttools{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 0;flex-wrap:wrap}
+.fttools .btn{min-height:34px;padding:4px 12px;font-size:.85rem}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:16px 0 0;overflow-x:auto}
+.tabs button{all:unset;cursor:pointer;padding:10px 16px;color:var(--muted);border-bottom:3px solid transparent;font-weight:600;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--accent)}
+.tabs button:focus-visible,.alts button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ptool{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:14px 0 0}
+.ht th,.ht td{padding:4px 5px;font-size:.78rem;min-width:40px}
+.ht tbody th{min-width:110px}
+.ht td b{display:inline}
+.ht td small{display:block;font-size:.66rem}
+.camg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:8px 0}
+.camc{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:var(--ink)}
+.camc:hover{border-color:var(--accent)}
+.camc span{font-size:1.6rem}
+.camc small{color:var(--muted)}
+.hp{fill:none;stroke:var(--muted);stroke-opacity:.35;stroke-width:1}
+.ha{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:5 4}
+.hc{fill:none;stroke:var(--ink);stroke-width:3}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(940px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto}
 dialog::backdrop{background:rgba(5,15,25,.6)}
 @media (prefers-reduced-motion:no-preference){dialog[open]{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
 .in{padding:20px 22px 22px}
@@ -564,25 +614,223 @@ function openCmp() {
   $('#cmpd').showModal();
 }
 
+const when = (s, i) => i === 7 ? 'hoy' : i === 8 ? 'mañana' : 'el ' + day(s.days[i].date, {weekday: 'long'});
+function nextSnow(s) {
+  for (let i = 7; i < s.days.length; i++) if ((s.days[i].snow || 0) >= 0.5) return i;
+  return -1;
+}
+function lastSnow(s) {
+  for (let i = 6; i >= 0; i--) if ((s.days[i].snow || 0) >= 0.5) return s.days[i];
+  return null;
+}
+function hero(sx, c) {
+  const t0 = sx.days[7] || {}, ni = nextSnow(sx), ls = lastSnow(sx);
+  const cur = c || {t: sx.t, code: t0.code, w: sx.wind_now, cl: sx.cloud_now};
+  const k = (b, l) => `<div class="kpi"><b>${b}</b><span>${l}</span></div>`;
+  const extra = cur.w == null ? '' : `<span>Viento ${Math.round(cur.w)} km/h${cur.cl == null ? '' : ', nubes ' + Math.round(cur.cl) + '%'}</span>`;
+  return `<div class="hero2"><div class="nowb"><span class="bi">${ICON(cur.code) || '🌡️'}</span><div><b class="${cur.t > 0 ? 'warm' : 'cold'}">${cur.t}°</b><span>${cur.code == null ? 'ahora' : 'ahora: ' + WXT(cur.code)}</span>${extra}</div></div><div class="kpis">` +
+    k(fmt(sx.p7) + ' cm', 'nieve en los últimos 7 días' + (ls ? ', la última el ' + day(ls.date, {day: 'numeric', month: 'short'}) : '')) +
+    (ni >= 0 ? k(fmt(sx.days[ni].snow) + ' cm', 'próxima nevada, ' + when(sx, ni)) : k('Sin nieve', `prevista en los próximos ${FD} días`)) +
+    (c ? k(fmt(c.s24) + ' cm', 'nieve en las próximas 24 h') + k(fmt(c.s72) + ' cm', 'nieve en las próximas 72 h') + (c.fl != null ? k(Math.round(c.fl) + ' m', 'isoterma 0°, altura a la que se llega a 0°') : '') : k(fmt(sx.f5) + ' cm', `de nieve prevista en ${FD} días`)) +
+    (sx.sc ? k(sx.sc.total + '/100', 'índice para el fin de semana') : '') + '</div></div>';
+}
+function summ(ds) {
+  if (!ds.length) return '';
+  const tot = ds.reduce((t, d) => t + (d.snow || 0), 0);
+  const pk = ds.reduce((a, d) => (d.snow || 0) > (a.snow || 0) ? d : a, ds[0]);
+  const tmin = Math.min(...ds.map(d => d.tmin)), tmax = Math.max(...ds.map(d => d.tmax));
+  const nieve = tot < 1 ? 'Sin nevadas' : tot < 5 ? `Nevadas flojas (${fmt(tot)} cm)` : tot < 15 ? `Nevadas moderadas (${fmt(tot)} cm)` : `Nevadas fuertes (${fmt(tot)} cm)`;
+  let t = nieve + (tot >= 1 ? `, con el máximo el ${day(pk.date, {weekday: 'long'})}` : '') + `. Temperaturas entre ${Math.round(tmin)}° y ${Math.round(tmax)}°`;
+  if (ds[0].wind != null) {
+    const w = Math.max(...ds.map(d => d.wind || 0)), sun = ds.reduce((a, d) => a + (d.sun || 0), 0) / ds.length;
+    t += `, ${w < 20 ? 'viento flojo' : w < 40 ? 'viento moderado' : 'viento fuerte'} y ${sun >= 6 ? 'mucho sol' : sun >= 3 ? 'sol y nubes' : 'cielos cubiertos'}`;
+  }
+  return t + '.';
+}
+function sumBlock(s) {
+  const a = s.days.slice(7, 10), b = s.days.slice(10);
+  return `<div class="summ"><b>Hoy y los 2 días siguientes</b><p>${summ(a)}</p>` + (b.length ? `<b>Días 4 a ${b.length + 3}</b><p>${summ(b)}</p>` : '') + '</div>';
+}
+function dtags(s, i) {
+  const d = s.days[i], prev = (s.days[i - 1] ? s.days[i - 1].snow || 0 : 0) + (s.days[i - 2] ? s.days[i - 2].snow || 0 : 0), t = [];
+  if ((d.snow || 0) >= 10) t.push(['Powder', 'p']);
+  else if (d.wind != null && (d.sun || 0) >= 5 && d.wind <= 25 && d.tmax <= 3 && prev + (d.snow || 0) >= 5) t.push(['Día perfecto', 'g']);
+  if (d.wind != null && (d.wind >= 50 || d.gust >= 80)) t.push(['Viento fuerte', 'w']);
+  if (d.tmax >= 5) t.push(['Deshielo', 'h']);
+  return t.map(([n, c]) => `<span class="tg ${c}">${n}</span>`).join('');
+}
+function ftable(s) {
+  const ds = s.days, cls = i => (i < 7 ? 'past' : '') + (([0, 6].includes(new Date(ds[i].date + 'T12:00:00').getDay())) ? ' we' : '') + (i === 7 ? ' td' : '');
+  const heat = (r, v) => v == null ? '' : ` style="background:color-mix(in srgb, ${ramp(r, v)} 65%, var(--card))"`;
+  const sn = c => c >= 1 ? ` style="background:${SNOWC(c)};color:${c >= 5 ? '#fff' : '#0f2233'}"` : '';
+  const row = (label, f) => `<tr><th>${label}</th>${ds.map((d, i) => f(d, i)).join('')}</tr>`;
+  const thead = '<thead><tr><th></th>' + ds.map((d, i) => `<th class="${cls(i)}"><small>${i === 7 ? 'hoy' : day(d.date, {weekday: 'short'})}</small><b>${day(d.date, {day: 'numeric'})}</b></th>`).join('') + '</tr></thead>';
+  const body = row('Día', (d, i) => `<td class="${cls(i)}">${dtags(s, i)}</td>`) +
+    row('Tiempo', (d, i) => `<td class="${cls(i)}">${d.code == null ? '–' : `<span class="ic">${ICON(d.code)}</span><small>${WXT(d.code)}</small>`}</td>`) +
+    row('Nieve (cm)', (d, i) => `<td class="${cls(i)}"${sn(d.snow || 0)}><b>${(d.snow || 0) >= 0.1 ? fmt(d.snow) : '–'}</b></td>`) +
+    row('Temperatura', (d, i) => `<td class="${cls(i)}"${heat(RAMPS.tmax, d.tmax)}><b>${d.tmax == null ? '–' : Math.round(d.tmax) + '°'}</b><small>${d.tmin == null ? '' : Math.round(d.tmin) + '°'}</small></td>`) +
+    row('Viento (km/h)', (d, i) => `<td class="${cls(i)}"${heat(RAMPS.wind, d.wind)}>${d.wind == null ? '–' : `<b>${Math.round(d.wind)}</b><small>rachas ${Math.round(d.gust)}</small>`}</td>`) +
+    row('Sol (horas)', (d, i) => `<td class="${cls(i)}"${heat(RAMPS.sun, d.sun)}><b>${d.sun == null ? '–' : fmt(d.sun)}</b></td>`);
+  return `<div class="ftw"><table class="ft hidepast">${thead}<tbody>${body}</tbody></table></div>` +
+    '<div class="fttools"><button class="btn" type="button" data-past>Ver días pasados</button><span class="note" style="margin:0">Los colores indican temperatura, viento y sol. Las etiquetas resumen cómo será el día para esquiar.</span></div>';
+}
+
 function altBlock(s, mid) {
   const l = Math.max(0, (s.alt_base - 500) / 34), w = Math.max(4, (s.alt_top - s.alt_base) / 34), m = (mid - 500) / 34;
   return `<div class="altd"><div class="altl"><span>Cota base <b>${s.alt_base} m</b></span><span>Desnivel <b>${s.alt_top - s.alt_base} m</b></span><span>Cota máxima <b>${s.alt_top} m</b></span></div>` +
     `<div class="trk big"><b style="left:${l}%;width:${w}%"></b><i style="left:${m}%" title="Altitud usada para el cálculo: ${mid} m"></i></div></div>`;
 }
 
-function open(id) {
-  const s = DATA.find(x => x.id === id), d = $('#det');
-  ID = id;
-  const mid = Math.round((s.alt_base + s.alt_top) / 2);
-  d.querySelector('.in').innerHTML =
-    `<div class="dh"><div><h2>${s.name}</h2><p class="sub">${(s.region === PAIS[s.country] ? s.region : s.region + ', ' + PAIS[s.country]) + (s.km != null ? ', a ' + Math.round(s.km) + ' km en línea recta' : '')}</p></div>` +
-    '<div class="acts"><button class="btn" type="button" data-dir="-1" aria-label="Estación anterior">‹</button><button class="btn" type="button" data-dir="1" aria-label="Estación siguiente">›</button><button class="btn" type="button" data-share>Compartir</button><button class="btn x" type="button">Cerrar</button></div></div>' +
-    (s.ok
-      ? `<div class="nums"><div><b class="${s.t > 0 ? 'warm' : 'cold'}">${s.t}°</b><span>ahora</span></div><div><b>${fmt(s.p7)}</b><span>cm últimos 7 días</span></div><div><b>${fmt(s.f5)}</b><span>cm próx. ${FD} días</span></div>${windNow(s)}</div>${altBlock(s, mid)}${scBlock(s)}${chart(s.days)}${fcBlock(s)}${camBlock(s)}` +
-        '<div class="lg"><span><i style="background:var(--warm)"></i>Máxima</span><span><i style="background:var(--cold)"></i>Mínima</span><span><i style="background:var(--snow)"></i>Nieve caída</span><span><i style="background:var(--fc)"></i>Nieve prevista</span></div>'
-      : '<p class="nodata">Sin datos hoy para esta estación.</p>') +
-    `<p class="note">Temperatura y nieve calculadas con el modelo meteorológico Open-Meteo para ${mid} m, la altitud media de la estación.</p>` +
+const TABS = [['prev', 'Previsión'], ['cam', 'Webcams'], ['his', 'Histórico'], ['info', 'Info']];
+let TAB = 'prev', ALT = 1, HV = 'dias', HD = 0, DET = {}, HIS = {};
+const LEGEND = '<div class="lg"><span><i style="background:var(--warm)"></i>Máxima</span><span><i style="background:var(--cold)"></i>Mínima</span><span><i style="background:var(--snow)"></i>Nieve caída</span><span><i style="background:var(--fc)"></i>Nieve prevista</span></div>';
+const kpi = (b, l) => `<div class="kpi"><b>${b}</b><span>${l}</span></div>`;
+
+function loadJSON(url, cache, id, cb) {
+  if (id in cache) return;
+  cache[id] = 'loading';
+  fetch(url).then(r => r.ok ? r.json() : null).catch(() => null).then(j => { cache[id] = j; cb(); });
+}
+const ready = d => d && d !== 'loading' && d.alts;
+const nowIdx = start => {
+  const n = new Date().toLocaleString('sv-SE', {timeZone: 'Europe/Madrid'}).slice(0, 13).replace(' ', 'T');
+  return Math.max(0, Math.round((Date.parse(n + ':00Z') - Date.parse(start.slice(0, 13) + ':00Z')) / 36e5));
+};
+function hourDays(a, start) {
+  const h = a.h, n = h.t.length, out = [], d0 = Date.parse(start.slice(0, 10) + 'T12:00:00Z');
+  for (let d = 0; d * 24 < n; d++) {
+    const idx = [...Array(24).keys()].map(i => d * 24 + i).filter(i => i < n);
+    const num = k => h[k] ? idx.map(i => h[k][i]).filter(v => v != null) : [];
+    const add = k => Math.round(num(k).reduce((x, y) => x + y, 0) * 10) / 10;
+    const t = num('t'), cs = idx.filter(i => i % 24 >= 8 && i % 24 <= 20 && h.code).map(i => h.code[i]).filter(v => v != null);
+    out.push({date: new Date(d0 + d * 864e5).toISOString().slice(0, 10), tmin: Math.min(...t), tmax: Math.max(...t), snow: add('sn'),
+      code: cs.length ? Math.max(...cs) : null, wind: h.w ? Math.max(...num('w')) : null, gust: h.g ? Math.max(...num('g')) : null, sun: h.su ? add('su') : null});
+  }
+  return out;
+}
+function altDays(s, k) {
+  const det = DET[s.id];
+  return ready(det) && det.alts[k] ? [...s.days.slice(0, 7), ...hourDays(det.alts[k], det.start)] : s.days;
+}
+function curNow(s, k) {
+  const det = DET[s.id];
+  if (!ready(det) || !det.alts[k]) return null;
+  const h = det.alts[k].h, i = Math.min(h.t.length - 1, nowIdx(det.start));
+  const tot = n => (h.sn || []).slice(i, i + n).reduce((x, y) => x + (y || 0), 0);
+  return {t: Math.round(h.t[i]), code: h.code ? h.code[i] : null, w: h.w ? h.w[i] : null, cl: h.cl ? h.cl[i] : null, fl: h.fl ? h.fl[i] : null, s24: tot(24), s72: tot(72)};
+}
+function htable(det, k, hd) {
+  const h = det.alts[k].h, a = hd * 24, idx = [...Array(24).keys()].map(i => a + i).filter(i => i < h.t.length);
+  const g = (key, i) => h[key] ? h[key][i] : null;
+  const heat = (r, v) => v == null ? '' : ` style="background:color-mix(in srgb, ${ramp(r, v)} 65%, var(--card))"`;
+  const sn = c => c >= 0.1 ? ` style="background:${SNOWC(Math.max(c, 1))};color:${c >= 5 ? '#fff' : '#0f2233'}"` : '';
+  const row = (label, f) => `<tr><th>${label}</th>${idx.map(i => f(i)).join('')}</tr>`;
+  return `<div class="ftw"><table class="ft ht"><thead><tr><th></th>${idx.map(i => `<th>${String(i % 24).padStart(2, '0')}h</th>`).join('')}</tr></thead><tbody>` +
+    row('Tiempo', i => `<td>${g('code', i) == null ? '–' : `<span class="ic">${ICON(g('code', i))}</span>`}</td>`) +
+    row('Nieve (cm)', i => `<td${sn(g('sn', i) || 0)}>${(g('sn', i) || 0) >= 0.1 ? fmt(g('sn', i)) : '–'}</td>`) +
+    row('Lluvia (mm)', i => `<td>${(g('rn', i) || 0) >= 0.1 ? fmt(g('rn', i)) : '–'}</td>`) +
+    row('Temperatura', i => `<td${heat(RAMPS.tmax, g('t', i))}><b>${Math.round(g('t', i))}°</b></td>`) +
+    row('Sensación', i => `<td>${g('at', i) == null ? '–' : Math.round(g('at', i)) + '°'}</td>`) +
+    row('Viento (km/h)', i => `<td${heat(RAMPS.wind, g('w', i))}>${g('w', i) == null ? '–' : `<span style="display:inline-block;transform:rotate(${(g('wd', i) || 0) + 180}deg)">↑</span> <b>${Math.round(g('w', i))}</b><small>${Math.round(g('g', i) || 0)}</small>`}</td>`) +
+    row('Isoterma 0° (m)', i => `<td>${g('fl', i) == null ? '–' : Math.round(g('fl', i) / 10) * 10}</td>`) +
+    row('Nubes (%)', i => `<td>${g('cl', i) == null ? '–' : Math.round(g('cl', i))}</td>`) +
+    '</tbody></table></div>';
+}
+
+function panPrev(s) {
+  const det = DET[s.id], has = ready(det);
+  const sx = {...s, days: altDays(s, ALT)};
+  sx.f5 = sum(sx.days.slice(7));
+  sx.sc = score(sx);
+  const c = has ? curNow(s, ALT) : null;
+  const seg = (attr, items, cur) => `<div class="seg" role="group">${items.map(([v, n]) => `<button type="button" data-${attr}="${v}" aria-pressed="${String(v) === String(cur)}">${n}</button>`).join('')}</div>`;
+  const tools = has
+    ? seg('alt', det.alts.map((a, i) => [i, `${['Base', 'Media', 'Cima'][i]} ${a.m} m`]), ALT) + seg('hv', [['dias', 'Por días'], ['horas', 'Hora a hora']], HV)
+    : (s.detail && DET[s.id] !== null ? '<span class="note">Cargando alturas y hora a hora…</span>' : '');
+  let body;
+  if (has && HV === 'horas') {
+    const fd = hourDays(det.alts[ALT], det.start);
+    body = '<h3 class="sec">Hora a hora</h3>' + `<div class="days">${fd.map((d, i) => `<button type="button" data-hd="${i}" aria-pressed="${i === HD}" class="${i === 0 ? 'today' : ''}"><small>${i === 0 ? 'hoy' : day(d.date, {weekday: 'short'})}</small><b>${day(d.date, {day: 'numeric'})}</b></button>`).join('')}</div>` +
+      htable(det, ALT, HD) + '<p class="note">La flecha indica hacia dónde sopla el viento y el número pequeño son las rachas. La isoterma 0° es la altura a la que la temperatura llega a 0°.</p>';
+  } else body = '<h3 class="sec">Previsión día a día</h3>' + ftable(sx);
+  return `<div class="ptool">${tools}</div>` + hero(sx, c) + sumBlock(sx) + body + '<h3 class="sec">Evolución de temperaturas y nieve</h3>' + chart(sx.days) + LEGEND +
+    (has ? '<p class="note">Los días pasados se muestran a la altitud media.</p>' : '');
+}
+function panCam(s) {
+  const c = s.webcams || [];
+  return '<h3 class="sec">Webcams</h3>' +
+    (c.length ? `<div class="camg">${c.map(x => `<a class="camc" href="${x.url}" target="_blank" rel="noopener"><span>📷</span><b>${x.title}</b><small>Se abre en la web oficial</small></a>`).join('')}</div>` : '<p class="nodata">Todavía no hay enlaces a webcams de esta estación.</p>') +
+    '<p class="note">Los enlaces se obtienen automáticamente de la web oficial de la estación.</p>' +
     (s.web ? `<a class="go" href="${s.web}" target="_blank" rel="noopener">Web oficial de la estación</a>` : '');
+}
+function curCum(s) {
+  const det = DET[s.id];
+  if (!ready(det) || !det.season) return null;
+  const t0 = Date.parse(det.season.start + 'T12:00:00Z'), daily = det.season.daily.map(v => v || 0);
+  s.days.slice(0, 7).forEach(d => {
+    const k = Math.round((Date.parse(d.date + 'T12:00:00Z') - t0) / 864e5);
+    if (k >= daily.length && k >= 0) { while (daily.length < k) daily.push(0); daily.push(d.snow || 0); }
+  });
+  return daily;
+}
+function panHis(s) {
+  const hs = HIS[s.id];
+  if (hs === undefined || hs === 'loading') return '<h3 class="sec">Histórico de nieve</h3><p class="nodata">Cargando histórico…</p>';
+  if (!hs || !hs.seasons || !Object.keys(hs.seasons).length) return '<h3 class="sec">Histórico de nieve</h3><p class="nodata">El histórico de esta estación aún se está generando. Se completa poco a poco con las actualizaciones diarias.</p>';
+  const ys = Object.keys(hs.seasons).sort(), N = 30, W = 640, H = 260, L = 42, R = 10, T = 12, B = 28;
+  const daily = curCum(s), pts = [];
+  if (daily) {
+    for (let i = 0; i * 7 <= daily.length; i++) pts.push([i, daily.slice(0, 7 * i).reduce((a, b) => a + b, 0)]);
+    if (daily.length % 7) pts.push([daily.length / 7, daily.reduce((a, b) => a + b, 0)]);
+  }
+  const avg = Array.from({length: N + 1}, (_, i) => ys.reduce((t, y) => t + (hs.seasons[y][i] || 0), 0) / ys.length);
+  const max = Math.max(10, ...ys.flatMap(y => hs.seasons[y]), ...pts.map(p => p[1]));
+  const x = w => L + (W - L - R) * w / N, y = v => T + (H - T - B) * (1 - v / max);
+  const line = (arr, cls) => `<polyline class="${cls}" points="${arr.map(([w, v]) => x(w).toFixed(1) + ',' + y(v).toFixed(1)).join(' ')}"/>`;
+  let g = `<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="Nieve acumulada por temporada">`;
+  [0, 0.5, 1].forEach(f => { g += `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(max * f)}" y2="${y(max * f)}"/><text class="ax" x="${L - 6}" y="${y(max * f) + 4}" text-anchor="end">${Math.round(max * f)}</text>`; });
+  [['Oct', 0], ['Nov', 4.4], ['Dic', 8.7], ['Ene', 13.1], ['Feb', 17.6], ['Mar', 21.6], ['Abr', 26]].forEach(([m, w]) => { g += `<text class="ax" x="${x(w)}" y="${H - 8}">${m}</text>`; });
+  ys.forEach(yr => { g += line(hs.seasons[yr].map((v, i) => [i, v]), 'hp'); });
+  g += line(avg.map((v, i) => [i, v]), 'ha') + (pts.length ? line(pts, 'hc') : '') + '</svg>';
+  let k = '';
+  if (pts.length) {
+    const wk = daily.length / 7, i0 = Math.min(N, Math.floor(wk)), tot = pts[pts.length - 1][1];
+    const am = avg[i0] + (avg[Math.min(N, i0 + 1)] - avg[i0]) * (wk - i0), pc = am > 0 ? Math.round((tot / am - 1) * 100) : null;
+    k = '<div class="kpis">' + kpi(fmt(tot) + ' cm', 'llevas esta temporada') + kpi(fmt(am) + ' cm', `media de las ${ys.length} temporadas anteriores a esta fecha`) +
+      (pc == null ? '' : kpi((pc > 0 ? '+' : '') + pc + '%', pc >= 0 ? 'por encima de la media' : 'por debajo de la media')) + '</div>';
+  }
+  const best = ys.map(yr => [yr, hs.seasons[yr][N]]).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([yr, v]) => `${yr}/${+yr + 1}: ${v} cm`).join(', ');
+  return '<h3 class="sec">Nieve acumulada por temporada</h3>' + k + g +
+    '<div class="lg"><span><i style="background:var(--ink)"></i>Esta temporada</span><span><i style="background:var(--accent)"></i>Media</span><span><i style="background:var(--muted);opacity:.5"></i>Temporadas anteriores</span></div>' +
+    `<p class="note">Las mejores temporadas: ${best}. Nieve acumulada desde el 1 de octubre, calculada con el modelo meteorológico para la altitud media de la estación.</p>`;
+}
+function panInfo(s) {
+  const mid = Math.round((s.alt_base + s.alt_top) / 2);
+  const rows = [['País', PAIS[s.country]], ['Zona', s.region], ['Cota base', s.alt_base + ' m'], ['Cota máxima', s.alt_top + ' m'], ['Desnivel', (s.alt_top - s.alt_base) + ' m'], ['Coordenadas', s.lat.toFixed(2) + ', ' + s.lon.toFixed(2)]];
+  if (s.km != null) rows.push(['Distancia', Math.round(s.km) + ' km en línea recta']);
+  return '<h3 class="sec">Información</h3><table class="ct"><tbody>' + rows.map(([a, b]) => `<tr><th>${a}</th><td>${b}</td></tr>`).join('') + '</tbody></table>' +
+    `<div class="two">${altBlock(s, mid)}${scBlock(s)}</div>` +
+    `<p class="note">Temperatura y nieve calculadas con el modelo meteorológico Open-Meteo. En la pestaña Previsión puedes ver la base, la media (${mid} m) y la cima.</p>` +
+    (s.web ? `<a class="go" href="${s.web}" target="_blank" rel="noopener">Web oficial de la estación</a>` : '');
+}
+
+function paint() {
+  const s = DATA.find(x => x.id === ID);
+  if (!s) return;
+  if (s.detail) loadJSON(`data/s/${s.id}.json`, DET, s.id, () => { if (ID === s.id && $('#det').open) paint(); });
+  if (TAB === 'his' || TAB === 'prev') loadJSON(`history/${s.id}.json`, HIS, s.id, () => { if (ID === s.id && TAB === 'his' && $('#det').open) paint(); });
+  const sub = (s.region === PAIS[s.country] ? s.region : s.region + ', ' + PAIS[s.country]) + (s.km != null ? ', a ' + Math.round(s.km) + ' km en línea recta' : '');
+  const head = `<div class="dh"><div><h2>${s.name}</h2><p class="sub">${sub}</p></div>` +
+    '<div class="acts"><button class="btn" type="button" data-dir="-1" aria-label="Estación anterior">‹</button><button class="btn" type="button" data-dir="1" aria-label="Estación siguiente">›</button><button class="btn" type="button" data-share>Compartir</button><button class="btn x" type="button">Cerrar</button></div></div>';
+  const tabs = `<div class="tabs" role="tablist">${TABS.map(([k, n]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${TAB === k}">${n}${k === 'cam' && s.webcams && s.webcams.length ? ' (' + s.webcams.length + ')' : ''}</button>`).join('')}</div>`;
+  const pan = !s.ok ? '<p class="nodata">Sin datos hoy para esta estación.</p>' : TAB === 'cam' ? panCam(s) : TAB === 'his' ? panHis(s) : TAB === 'info' ? panInfo(s) : panPrev(s);
+  $('#det .in').innerHTML = head + tabs + `<div class="pan">${pan}</div>`;
+}
+
+function open(id) {
+  ID = id;
+  paint();
+  const d = $('#det');
   if (!d.open) d.showModal();
   d.querySelector('.x').focus();
 }
@@ -630,6 +878,21 @@ $('#det').addEventListener('click', e => {
   if (e.target.id === 'det' || e.target.closest('.x')) return e.currentTarget.close();
   const sh = e.target.closest('[data-share]');
   if (sh) return copyLink(location.href.split('#')[0] + '#s=' + ID, sh);
+  const tb = e.target.closest('[data-tab]');
+  if (tb) { TAB = tb.dataset.tab; paint(); return; }
+  const al = e.target.closest('[data-alt]');
+  if (al) { ALT = +al.dataset.alt; paint(); return; }
+  const hv = e.target.closest('[data-hv]');
+  if (hv) { HV = hv.dataset.hv; paint(); return; }
+  const hd = e.target.closest('[data-hd]');
+  if (hd) { HD = +hd.dataset.hd; paint(); return; }
+  const pb = e.target.closest('[data-past]');
+  if (pb) {
+    const t = e.currentTarget.querySelector('.ft');
+    t.classList.toggle('hidepast');
+    pb.textContent = t.classList.contains('hidepast') ? 'Ver días pasados' : 'Ocultar días pasados';
+    return;
+  }
   const n = e.target.closest('[data-dir]');
   if (n) go(+n.dataset.dir);
 });
