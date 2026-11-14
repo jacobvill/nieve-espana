@@ -7,18 +7,40 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python update.py
-      - run: |
+      - name: Descargar datos
+        run: python update.py
+      - name: Guardar histórico
+        run: |
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
-          git add data/latest.json
-          git diff --cached --quiet || (git commit -m "Actualizar datos" && git push)
+          git add history || true
+          git diff --cached --quiet || (git commit -m "Actualizar histórico" && git push)
+      - name: Preparar sitio
+        run: |
+          mkdir _site
+          cp index.html _site/
+          cp -r data _site/data
+          if [ -d history ]; then cp -r history _site/history; fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
